@@ -35,7 +35,7 @@ extension.
 | 1. Scaffold | ✅ done |
 | 2. Testbed agents | ✅ done (3 agents, swappable providers incl. Vertex) |
 | 3. Injection oracle | ✅ done — **5-rung capability ladder** + structural rung-1 scoring (§4) |
-| 4. Payload set | ✅ done — 7 vectors, **99 variants** (12 technique families T0–T10 + combined) |
+| 4. Payload set | ✅ done — 7 vectors, **99 variants** (13 techniques in 12 families; obfuscation has a plain and a base64 variant) |
 | 5. Matrix runner (`harness/run.py`) | ✅ done — parallel (`--workers`), resumable; **full sweep complete** |
 | 6. Prevalence (read-only GitHub metadata) | ⬜ not started |
 | 7. Reporting (`harness/analyze.py` + `results/FINDINGS.md`) | ✅ **v3 done** — 11-model analysis + 4 charts |
@@ -61,7 +61,8 @@ cases + harness-loop smoke). Local `.venv/` runs them (gitignored; system Python
    - **OpenAI: flagship gpt-4.1 (38.7%) ≈ minis (29.7–37.4%); o3-mini is the MOST susceptible (44.6%)**
 3. **Reasoning models diverge cross-family:** DeepSeek-Reasoner = 4.0% (very resistant);
    o3-mini = 44.6% (very exploitable). "Reasoning" architecture alone doesn't predict resistance.
-4. **Detection rate is the strongest predictor of resistance:**
+4. **Explicit flagging rate is the strongest predictor of resistance** (flagging = phrase
+   matching on agent output; see CHANGELOG):
    - High flagging (55–95%): Claude Sonnet/Haiku, DeepSeek Chat/Reasoner → mean 8.2% susceptible
    - Moderate flagging (30%): Gemini Pro → 14.3% susceptible
    - Low flagging (10–17%): OpenAI models, Gemini Flash/Lite → mean 38.1% susceptible
@@ -158,7 +159,7 @@ essentially just the canary and isn't flagging the injection. A separate `detect
 ## 5. Payloads
 
 **99 variants** across 7 vector files. Axes:
-- **technique** (12 families): direct (T0), fake_system (T1), context_grounded (T2),
+- **technique** (13 techniques in 12 families): direct (T0), fake_system (T1), context_grounded (T2),
   observation_spoof (T3), delimiter_confusion (T4), fake_completion (T5), obfuscated (T6, incl.
   base64), policy_mode (T7), urgency (T8), config_in_data (T9), conditional (T10), combined.
 - **target_rung**: canary (63) / benign_tool (7) / secret_read (10) / secret_exfil (7) /

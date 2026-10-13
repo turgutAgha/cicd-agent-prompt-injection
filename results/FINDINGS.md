@@ -88,7 +88,10 @@ from o3-mini (13.4% detection rate; it flags injections occasionally but still c
 
 ![Injection detection rate by model](fig4_detection_rates.png)
 
-### 4. Detection rate is a stronger predictor of resistance than model size
+### 4. Explicit flagging rate is a stronger predictor of resistance than model size
+
+Flagging is measured by phrase matching on the agent's output (65 markers with negation
+handling; see `CHANGELOG.md` and `harness/oracle.py`).
 
 The 11 models form a gradient of injection-flagging behavior (not a binary split):
 
@@ -99,7 +102,7 @@ The 11 models form a gradient of injection-flagging behavior (not a binary split
 | **Low flagging** | OpenAI models, Gemini Flash/Lite | 10–17% | 38.1% |
 
 Models that flag injections ≥50% of the time are ~5× more resistant than the low-flagging
-group. Detection rate is a better predictor than model size (gpt-4.1 flagship is 38.7%
+group. Explicit flagging rate is a better predictor than model size (gpt-4.1 flagship is 38.7%
 susceptible despite 16.6% detection) or reasoning capability (o3-mini at 44.6%). Gemini Pro
 occupies a middle ground: moderate flagging (30.4%) paired with moderate resistance (14.3%).
 

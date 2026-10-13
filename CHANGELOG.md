@@ -41,7 +41,8 @@ Corrected detection rates after the revision:
 
 - 5-rung capability ladder: NONE, CANARY, BENIGN_TOOL, SECRET_READ, SECRET_EXFIL,
   DOWNSTREAM_EXEC.
-- 99 payload variants across 7 injection vectors and 12 technique families.
+- 99 payload variants across 7 injection vectors and 13 techniques in 12 families
+  (obfuscation has a plain and a base64 variant).
 - 3 CI agents: code_review, pr_summarizer, issue_triage.
 - Structural rung-1 scoring (compliance vs quotation) to avoid false positives from
   agents quoting the canary while flagging the injection.

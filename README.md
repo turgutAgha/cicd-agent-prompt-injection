@@ -6,7 +6,8 @@ a planted token, to calling unauthorized tools, to reading secrets, to exfiltrat
 to staging downstream commands in the pipeline.
 
 **16,327 trials** across **11 models** in **4 families** (Anthropic, DeepSeek, Google Gemini,
-OpenAI), using **99 payload variants** across 7 injection vectors and 12 technique families.
+OpenAI), using **99 payload variants** across 7 injection vectors and 13 techniques in 12
+families (obfuscation has a plain and a base64 variant).
 
 ## Key findings
 
@@ -18,11 +19,14 @@ OpenAI), using **99 payload variants** across 7 injection vectors and 12 techniq
    most exploitable model.
 3. **Reasoning architecture alone doesn't predict resistance.** DeepSeek-Reasoner
    (4.0% susceptible) vs o3-mini (44.6%) sit at opposite ends.
-4. **Detection rate is the strongest predictor.** Models that flag injections >=50% of
-   the time are ~5x more resistant, regardless of size or architecture.
+4. **Explicit flagging rate is the strongest predictor.** Models that flag injections >=50%
+   of the time are ~5x more resistant, regardless of size or architecture (flagging is
+   measured by phrase matching on the agent's output; see [CHANGELOG](CHANGELOG.md)).
 5. **gpt-4o-mini is the most dangerous for CI/CD** with 7.6% of trials reaching rung 5
    (downstream execution intent). **Claude Sonnet 5 is the most resistant** at 0.2%
    susceptible, 95.4% detection rate.
+
+![Share of trials reaching each intent depth, per model](results/fig1_reach_rates.png)
 
 See [`results/FINDINGS.md`](results/FINDINGS.md) for the full analysis, tables, and charts.
 
@@ -118,6 +122,6 @@ construct-validity mapping, R2/R3 cross-check design, and the optional two-step
 extension for observed propagation.
 
 See [`payloads/SCHEMA.md`](payloads/SCHEMA.md) for the payload format and technique
-taxonomy (12 families: direct, fake_system, context_grounded, observation_spoof,
-delimiter_confusion, fake_completion, obfuscated, policy_mode, urgency, config_in_data,
-conditional, combined).
+taxonomy: 13 techniques in 12 families (direct, fake_system, context_grounded,
+observation_spoof, delimiter_confusion, fake_completion, obfuscated + obfuscated_base64,
+policy_mode, urgency, config_in_data, conditional, combined).
