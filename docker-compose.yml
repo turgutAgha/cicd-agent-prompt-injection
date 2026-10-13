@@ -1,0 +1,13 @@
+# Runs the testbed in a container. Secrets come from .env (never baked into image).
+services:
+  testbed:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      # Persist results/prevalence output to the host.
+      - ./results:/app/results
+      - ./prevalence:/app/prevalence
+    # Override CMD to run the matrix once agents/oracle are implemented, e.g.:
+    #   docker compose run --rm testbed python harness/run.py
+    command: ["pytest", "-q"]
