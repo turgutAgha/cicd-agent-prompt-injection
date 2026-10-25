@@ -47,10 +47,10 @@ MODEL_SHORT = {
     "gpt-4.1-mini": "GPT-4.1-mini",
     "gemini-2.5-flash-lite": "Gemini Flash-Lite",
     "gpt-4o-mini": "GPT-4o-mini",
-    "deepseek-chat": "DeepSeek V3",
+    "deepseek-chat": "DeepSeek Chat",
     "gemini-2.5-pro": "Gemini Pro",
     "claude-haiku-4-5": "Claude Haiku",
-    "deepseek-reasoner": "DeepSeek R1",
+    "deepseek-reasoner": "DeepSeek Reasoner",
     "claude-sonnet-5": "Claude Sonnet 5",
 }
 
