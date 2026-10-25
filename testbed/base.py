@@ -29,6 +29,8 @@ class AgentResult:
 
     text: str = ""
     tool_calls: list[ToolCall] = field(default_factory=list)
+    served_model: str | None = None
+    finish_reason: str | None = None
 
 
 class Agent(Protocol):

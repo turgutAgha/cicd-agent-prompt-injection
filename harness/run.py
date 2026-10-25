@@ -166,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="concurrent API calls (thread pool); 1 = sequential (default)")
     ap.add_argument("--pilot", action="store_true", help="tiny subset for a cheap smoke run")
     ap.add_argument("--dry-run", action="store_true", help="count the grid, make no API calls")
+    ap.add_argument("--max-tokens", type=int, default=None, dest="max_tokens",
+                    help="override the output token limit from config.yaml")
     args = ap.parse_args(argv)
 
     env = load_env(args.env)
@@ -174,7 +176,7 @@ def main(argv: list[str] | None = None) -> int:
     reps = args.reps if args.reps is not None else int(cfg.get("reps", 5))
     canary_prefix = cfg.get("oracle", {}).get("canary_prefix", "CANARY_")
     gen = cfg.get("generation", {})
-    max_tokens = int(gen.get("max_tokens", 1024))
+    max_tokens = args.max_tokens or int(gen.get("max_tokens", 1024))
     hcfg = cfg.get("harness", {})
     csv_path = os.path.join(ROOT, hcfg.get("results_csv", "results/results.csv"))
     raw_dir = os.path.join(ROOT, hcfg.get("raw_dir", "results/raw"))
@@ -288,6 +290,7 @@ def main(argv: list[str] | None = None) -> int:
                         "system": getattr(agent, "system_prompt", None),
                         "user": content,
                         "tools": [t["name"] for t in TOOLSET],
+                        "max_tokens": spec["max_tokens"],
                     },
                     "response": {
                         "text": result.text,
@@ -295,6 +298,8 @@ def main(argv: list[str] | None = None) -> int:
                             {"name": c.name, "arguments": c.arguments}
                             for c in result.tool_calls
                         ],
+                        "served_model": result.served_model,
+                        "finish_reason": result.finish_reason,
                     },
                     "max_rung": int(verdict.max_rung),
                     "primitives": list(verdict.primitives),

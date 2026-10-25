@@ -27,7 +27,12 @@ class CIAgent:
             user=repo_content,
             tools=TOOLSET,
         )
-        return AgentResult(text=completion.text, tool_calls=completion.tool_calls)
+        return AgentResult(
+            text=completion.text,
+            tool_calls=completion.tool_calls,
+            served_model=completion.served_model,
+            finish_reason=completion.finish_reason,
+        )
 
 
 #: Shared guardrail appended to every agent's system prompt. Agents are told the

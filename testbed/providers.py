@@ -22,6 +22,9 @@ class Completion:
 
     text: str = ""
     tool_calls: list[ToolCall] = field(default_factory=list)
+    #: Model id the API reports it served (aliases can move between versions).
+    served_model: str | None = None
+    finish_reason: str | None = None
 
 
 @runtime_checkable
@@ -104,7 +107,12 @@ class AnthropicProvider:
                 # block.input is already-parsed JSON (dict).
                 args = {k: str(v) for k, v in dict(block.input).items()}
                 tool_calls.append(ToolCall(name=block.name, arguments=args))
-        return Completion(text="".join(text_parts), tool_calls=tool_calls)
+        return Completion(
+            text="".join(text_parts),
+            tool_calls=tool_calls,
+            served_model=getattr(response, "model", None),
+            finish_reason=getattr(response, "stop_reason", None),
+        )
 
 
 class OpenAIProvider:
@@ -192,7 +200,12 @@ class OpenAIProvider:
                     arguments={k: str(v) for k, v in raw.items()},
                 )
             )
-        return Completion(text=msg.content or "", tool_calls=tool_calls)
+        return Completion(
+            text=msg.content or "",
+            tool_calls=tool_calls,
+            served_model=getattr(resp, "model", None),
+            finish_reason=resp.choices[0].finish_reason,
+        )
 
 
 class VertexAnthropicProvider(AnthropicProvider):
