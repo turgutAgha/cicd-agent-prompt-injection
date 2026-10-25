@@ -1,5 +1,28 @@
 # Changelog
 
+## v3 - Re-runs and data fixes (2026-10)
+
+**16,335 trials; every model at 1,485.**
+
+- Ran the 8 gpt-4.1 trials that had failed with API errors (same settings).
+- Found that hidden reasoning sometimes used up the 1,024-token output limit, so the API
+  returned no answer (`malformed_function_call` on Gemini). Re-ran these trials with a
+  4,096-token limit:
+  - gemini-2.5-pro: all 1,485 trials re-run (17.8% were empty before; 0.1% after).
+  - gemini-2.5-flash (16) and gemini-2.5-flash-lite (40): only the empty trials.
+  - claude-sonnet-5 (16): only the empty trials; 15 are API-level refusals and stay empty.
+- Not re-run: o3-mini (50 empty; model shut down by OpenAI on 2026-10-23) and
+  deepseek-reasoner (47 empty; the alias now serves a newer model). These score 0.
+- Corrected DeepSeek labels: `deepseek-chat` / `deepseek-reasoner` pointed to
+  DeepSeek-V4-Flash (non-thinking / thinking) during our runs, not V3 / R1.
+- Corrected finding 2: price tier holds for Anthropic only; Gemini Flash-Lite is less
+  susceptible than Flash, and the DeepSeek pair is one model with two modes.
+- Runner now records the output limit, the served model id, and the finish reason in each
+  raw JSON (`--max-tokens` flag added).
+- `harness/analyze.py` section 7 adds robustness checks (CIs, empty outputs, canary-only
+  comparisons, rung-5 composition, rung-1 quotation cases).
+- Superseded responses are kept in `results/archive/superseded_max_tokens_1024/`.
+
 ## v2 - Oracle revision (2026-08-12)
 
 **Detection marker expansion and negation-aware matching.**
@@ -24,8 +47,8 @@ Corrected detection rates after the revision:
 | Model | Before | After |
 |-------|-------:|------:|
 | Claude Sonnet 5 | 94.6% | 95.4% |
-| DeepSeek R1 | 69.1% | 71.2% |
-| DeepSeek V3 | 57.2% | 67.1% |
+| deepseek-reasoner | 69.1% | 71.2% |
+| deepseek-chat | 57.2% | 67.1% |
 | Claude Haiku 4.5 | 37.6% | 55.0% |
 | Gemini Pro | 3.8% | 30.4% |
 | GPT-4.1 | 1.8% | 16.6% |
@@ -46,5 +69,5 @@ Corrected detection rates after the revision:
 - 3 CI agents: code_review, pr_summarizer, issue_triage.
 - Structural rung-1 scoring (compliance vs quotation) to avoid false positives from
   agents quoting the canary while flagging the injection.
-- Phase 1 (5 models): DeepSeek V3/R1, Gemini Flash/Flash-Lite/Pro.
+- Phase 1 (5 models): deepseek-chat/deepseek-reasoner, Gemini Flash/Flash-Lite/Pro.
 - Phase 2 (6 models): Claude Haiku 4.5/Sonnet 5, GPT-4.1/4.1-mini/4o-mini, o3-mini.

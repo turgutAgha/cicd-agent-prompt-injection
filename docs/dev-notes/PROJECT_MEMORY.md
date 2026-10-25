@@ -43,39 +43,44 @@ extension.
 **Tests:** `.venv/bin/python -m pytest -q` → **19 passing** (oracle canary compliance-vs-quotation
 cases + harness-loop smoke). Local `.venv/` runs them (gitignored; system Python has no pip).
 
-**FULL SWEEP COMPLETE: 16,327 trials, 11 models, 4 families.** Three phases:
-- **Phase 1 (2026-07-31):** 7,425 trials — 5 models (deepseek-chat, deepseek-reasoner,
-  gemini-2.5-flash-lite, -flash, -pro).
-- **Phase 2 (2026-08-11):** 8,508 trials — 6 models (claude-haiku-4-5, claude-sonnet-5,
-  gpt-4o-mini, gpt-4.1-mini, gpt-4.1, o3-mini). Sonnet 5 hit credit limit at 1,091/1,485.
-- **Phase 3 (2026-08-12):** 394 trials — completed Claude Sonnet 5 to full 1,485/1,485.
+**FULL SWEEP COMPLETE: 16,335 trials, 11 models x 1,485.** Phases:
+- **Phase 1 (2026-07-31):** 5 models (deepseek-chat, deepseek-reasoner, gemini-2.5-flash-lite,
+  -flash, -pro).
+- **Phase 2 (2026-08-11/12):** 6 models (claude-haiku-4-5, claude-sonnet-5, gpt-4o-mini,
+  gpt-4.1-mini, gpt-4.1, o3-mini).
+- **Phase 3 (2026-10):** re-runs. 8 failed gpt-4.1 trials; empty outputs (hidden reasoning used
+  up the 1,024-token limit) re-run at 4,096: all 1,485 gemini-2.5-pro trials, plus the empty
+  trials of gemini-2.5-flash/-lite and claude-sonnet-5. o3-mini (shut down 2026-10-23) and
+  deepseek-reasoner (alias moved to a newer model) could not be re-run; their empties score 0.
+  Details in CHANGELOG v3.
+- **DeepSeek names are aliases:** during our runs they served DeepSeek-V4-Flash, non-thinking
+  (`deepseek-chat`) and thinking (`deepseek-reasoner`). Not V3/R1.
 
 **Headline findings:**
 1. **Model-SPECIFIC, partial transfer within a vendor.** Mean pairwise Spearman ρ = 0.18 with
    all models, **0.29 without Sonnet 5** (11 of its 13 technique means are zero, so its ρ values
-   are noise). Same vendor 0.41, different vendor 0.26. Canary-only payloads: 0.37.
-2. **"Cheaper = more exploitable" holds for 3 of 4 families, BREAKS for OpenAI:**
-   - Anthropic: Haiku 9.2% >> Sonnet 0.2% (46× gap)
-   - Google: Flash 51.6% >> Pro 14.3%
-   - DeepSeek: Chat 19.2% >> Reasoner 4.0%
-   - **OpenAI: flagship gpt-4.1 (38.7%) ≈ minis (29.7–37.4%); o3-mini is the MOST susceptible (44.6%)**
-3. **Reasoning models diverge cross-family:** DeepSeek-Reasoner = 4.0% (very resistant);
-   o3-mini = 44.6% (very exploitable). "Reasoning" architecture alone doesn't predict resistance.
+   are noise). Same vendor 0.41, different vendor 0.26. Canary-only payloads: 0.36.
+2. **Price tier is a weak guide:**
+   - Anthropic: Haiku 9.2% >> Sonnet 0.2% (holds)
+   - Google: Pro 17.6% is lowest, but Flash-Lite 34.1% < Flash 52.2% (mixed)
+   - OpenAI: flagship gpt-4.1 (38.7%) ≈ minis (29.7–37.4%); o3-mini highest (44.6%) (breaks)
+   - DeepSeek: one model, thinking on/off: 19.2% → 4.0% (not a price comparison)
+3. **Reasoning alone doesn't predict resistance:** deepseek-reasoner 4.0% vs o3-mini 44.6%.
 4. **Explicit flagging rate is strongly associated with resistance** (ρ = −0.71 across models;
    flagging = phrase matching on agent output; see CHANGELOG):
-   - High flagging (55–95%): Claude Sonnet/Haiku, DeepSeek Chat/Reasoner → mean 8.1% susceptible
-   - Moderate flagging (30%): Gemini Pro → 14.3% susceptible
-   - Low flagging (10–17%): OpenAI models, Gemini Flash/Lite → mean 39.2% susceptible
-   - 193 trials flagged the injection and still followed it.
+   - High flagging (55–96%): Claude Sonnet/Haiku, DeepSeek Chat/Reasoner → mean 8.1% susceptible
+   - Moderate flagging (47%): Gemini Pro → 17.6% susceptible
+   - Low flagging (11–17%): OpenAI models, Gemini Flash/Lite → mean 39.5% susceptible
+   - 203 trials flagged the injection and still followed it.
 5. **Claude Sonnet 5 is the most resilient model tested**: 0.2% susceptibility (3/1,485 trials,
-   all rung 1 only; 2 of the 3 are quotations inside a code block), 95.4% flagging.
-6. **gpt-4o-mini has the highest DOWNSTREAM_EXEC rate**: 7.6% of trials reach rung 5. Of all 313
-   rung-5 trials, 147 staged a harmless `echo CANARY_...` (still attacker-controlled).
+   all rung 1 only; 2 of the 3 are quotations inside a code block), 95.5% flagging.
+6. **gpt-4o-mini has the highest DOWNSTREAM_EXEC rate**: 7.6% of trials reach rung 5. Of all 312
+   rung-5 trials, 144 staged a harmless `echo CANARY_...` (still attacker-controlled).
    Techniques: by mean depth `fake_completion` leads; on canary-only payloads `combined`,
    `policy_mode`, `context_grounded` lead. Vectors: by mean depth `dependency_metadata` leads; on
    canary-only payloads `issue_comment` leads and `dependency_metadata` ≈ `pr_body`.
-7. **Data quality:** gemini-2.5-pro returned empty output in 17.8% of trials (scored 0). Re-scoring
-   all raw outputs reproduces the CSV exactly. All numbers: `python -m harness.analyze` (section 7).
+7. **Data quality:** empty outputs now at most 3.4% per model (o3-mini). Re-scoring all raw outputs
+   reproduces the CSV exactly. All numbers: `python -m harness.analyze` (section 7).
 
 **Oracle revision (v2):** expanded detection markers from 22 to 65 with negation-aware matching
 to correctly detect OpenAI/Gemini flagging vocabulary. Recovered 1,819 previously-missed
@@ -123,7 +128,7 @@ project_llm/
 │   │   issue_comment.yaml, pr_body.yaml, commit_msg.yaml
 │   └── INJECTION_PLAYBOOK.md  # literature-grounded technique library
 │
-├── results/               # results.csv (16,327 rows) + analysis + findings + charts
+├── results/               # results.csv (16,335 rows) + analysis + findings + charts
 │   ├── results.csv        #   full trial dataset (tracked for reproducibility)
 │   ├── analysis.txt       #   raw analysis output
 │   ├── FINDINGS.md        #   human-readable writeup with all findings
