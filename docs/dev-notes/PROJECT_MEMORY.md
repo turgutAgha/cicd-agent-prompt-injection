@@ -51,9 +51,9 @@ cases + harness-loop smoke). Local `.venv/` runs them (gitignored; system Python
 - **Phase 3 (2026-08-12):** 394 trials — completed Claude Sonnet 5 to full 1,485/1,485.
 
 **Headline findings:**
-1. **Model-SPECIFIC across families** (mean pairwise Spearman ρ = **0.18**); within-family
-   ρ varies (Gemini 0.42–0.65, OpenAI minis 0.81) but cross-family ρ is near-zero or negative.
-   Claude Sonnet 5 is **anti-correlated** with Gemini models (ρ = −0.47 to −0.63).
+1. **Model-SPECIFIC, partial transfer within a vendor.** Mean pairwise Spearman ρ = 0.18 with
+   all models, **0.29 without Sonnet 5** (11 of its 13 technique means are zero, so its ρ values
+   are noise). Same vendor 0.41, different vendor 0.26. Canary-only payloads: 0.37.
 2. **"Cheaper = more exploitable" holds for 3 of 4 families, BREAKS for OpenAI:**
    - Anthropic: Haiku 9.2% >> Sonnet 0.2% (46× gap)
    - Google: Flash 51.6% >> Pro 14.3%
@@ -61,16 +61,21 @@ cases + harness-loop smoke). Local `.venv/` runs them (gitignored; system Python
    - **OpenAI: flagship gpt-4.1 (38.7%) ≈ minis (29.7–37.4%); o3-mini is the MOST susceptible (44.6%)**
 3. **Reasoning models diverge cross-family:** DeepSeek-Reasoner = 4.0% (very resistant);
    o3-mini = 44.6% (very exploitable). "Reasoning" architecture alone doesn't predict resistance.
-4. **Explicit flagging rate is the strongest predictor of resistance** (flagging = phrase
-   matching on agent output; see CHANGELOG):
-   - High flagging (55–95%): Claude Sonnet/Haiku, DeepSeek Chat/Reasoner → mean 8.2% susceptible
+4. **Explicit flagging rate is strongly associated with resistance** (ρ = −0.71 across models;
+   flagging = phrase matching on agent output; see CHANGELOG):
+   - High flagging (55–95%): Claude Sonnet/Haiku, DeepSeek Chat/Reasoner → mean 8.1% susceptible
    - Moderate flagging (30%): Gemini Pro → 14.3% susceptible
-   - Low flagging (10–17%): OpenAI models, Gemini Flash/Lite → mean 38.1% susceptible
-5. **Claude Sonnet 5 is the most resilient model tested** — 0.2% susceptibility (3/1,485 trials,
-   all rung 1 only), 95.4% detection rate. Never reached rung 2+.
-6. **gpt-4o-mini has the highest DOWNSTREAM_EXEC rate** — 7.6% of trials reach rung 5 (P2S intent).
-   Strongest techniques pooled: `fake_completion` (0.77), `combined` (0.62), `observation_spoof` (0.60).
-   Strongest vectors: `dependency_metadata`, `pr_body`. Most drivable agent: `issue_triage`.
+   - Low flagging (10–17%): OpenAI models, Gemini Flash/Lite → mean 39.2% susceptible
+   - 193 trials flagged the injection and still followed it.
+5. **Claude Sonnet 5 is the most resilient model tested**: 0.2% susceptibility (3/1,485 trials,
+   all rung 1 only; 2 of the 3 are quotations inside a code block), 95.4% flagging.
+6. **gpt-4o-mini has the highest DOWNSTREAM_EXEC rate**: 7.6% of trials reach rung 5. Of all 313
+   rung-5 trials, 147 staged a harmless `echo CANARY_...` (still attacker-controlled).
+   Techniques: by mean depth `fake_completion` leads; on canary-only payloads `combined`,
+   `policy_mode`, `context_grounded` lead. Vectors: by mean depth `dependency_metadata` leads; on
+   canary-only payloads `issue_comment` leads and `dependency_metadata` ≈ `pr_body`.
+7. **Data quality:** gemini-2.5-pro returned empty output in 17.8% of trials (scored 0). Re-scoring
+   all raw outputs reproduces the CSV exactly. All numbers: `python -m harness.analyze` (section 7).
 
 **Oracle revision (v2):** expanded detection markers from 22 to 65 with negation-aware matching
 to correctly detect OpenAI/Gemini flagging vocabulary. Recovered 1,819 previously-missed
